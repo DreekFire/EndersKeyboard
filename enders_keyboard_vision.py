@@ -292,6 +292,13 @@ if __name__ == "__main__":
             break
         if keypress == ord("r"):
             num_frames = 0
+            start_points = [
+                (385, 235), #thumb
+                (425, 125), #index
+                (500, 105), #middle
+                (560, 130), #ring
+                (615, 210) #pinky
+            ]
             act = False
             bg = None
             time.sleep(0.1)
