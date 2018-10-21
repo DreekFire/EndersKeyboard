@@ -30,11 +30,31 @@ def segment(image, threshold = 12):
         segmented = max(conts, key=cv.contourArea)
         return (thresholded, segmented)
 
+def rough_hull(hull_ids, cont, max_dist):
+    res = []
+    current_pos = cont[hull_ids[0]]
+    points = []
+    for point in hull:
+        if cont[point][0]**2 + cont[point][1]**2 < max_dist**2:
+            current_pos = [(current_pos[0] * len(points) + cont[point][0]) / (len(points) + 1), (current_pos[1] * len(points) + cont[point][1]) / (len(points) + 1)]
+            points.append(point)
+        else:
+            for i in points:
+                chosen = None
+                min_squared = 100000000
+                cur_squared = (cont[i][0] - current_pos[0])**2 + (cont[i][1] - current_pos[1])**2
+                if cur_squared < min_squared:
+                    min_squared = cur_squared
+                    chosen = i
+            res.append(i)
+            points = [point]
+            current_pos = cont[point]
+
 if __name__ == "__main__":
     aWeight = 0.5
 
     camera = cv.VideoCapture(0)
-    time.sleep(3)
+    time.sleep(1)
     top, right, bottom, left = 10, 350, 400, 650
 
     num_frames = 0
@@ -67,11 +87,12 @@ if __name__ == "__main__":
                 #    num_frames = 0
                 cv.drawContours(clone, [segmented + (right, top)], -1, (0, 0, 255))
                 hull = []
-                hull.append(cv.convexHull(segmented + (right, top)))
-                cv.drawContours(clone, hull, -1, (0, 0, 255))
+                hull.append(rough_hull(cv.convexHull(segmented + (right, top), returnPoints = False), segmented, 20))
+
+                cv.drawContours(clone, [cv.convexHull(segmented + (right, top))], -1, (0, 0, 255))
                 cv.imshow("Thresholded", thresholded)
 
-        cv.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
+        cv.rectangle(clone, (left, top), (right, bottom), (0, 255, 0), 2)
         num_frames += 1
 
         cv.imshow("Video Feed", clone)
